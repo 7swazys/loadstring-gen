@@ -1,8 +1,10 @@
 # loadstring-gen
 roblox loadstring gen for lazy ppl
 html version
-```
-<!DOCTYPE html>
+<details>
+  <summary>Click to expand!</summary>
+  ``lua
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -541,7 +543,10 @@ loadstring(game:HttpGet("https://your.raw.link/script.lua"))()</pre>
 </script>
 </body>
 </html>
-```
+    ```
+    
+</details>
+
 
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/7swazys/loadstring-gen/refs/heads/main/script"))()

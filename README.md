@@ -1,10 +1,10 @@
-# loadstring-gen
-roblox loadstring gen for lazy ppl
-html version
 <details>
-  <summary>Click to expand!</summary>
-  ``lua
-    <!DOCTYPE html>
+<summary>🔧 Click to open · Loadstring Converter Tool</summary>
+
+<br>
+
+<!-- PASTE YOUR ENTIRE HTML TOOL HERE -->
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -543,8 +543,7 @@ loadstring(game:HttpGet("https://your.raw.link/script.lua"))()</pre>
 </script>
 </body>
 </html>
-    ```
-    
+
 </details>
 
 

@@ -1,0 +1,425 @@
+-- Loadstring Generator GUI for Roblox
+-- Paste this into a LocalScript inside StarterPlayerScripts or any LocalScript context
+
+local player = game.Players.LocalPlayer
+local gui = Instance.new("ScreenGui")
+gui.Name = "LoadstringGenerator"
+gui.Parent = player:WaitForChild("PlayerGui")
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 520, 0, 580)
+mainFrame.Position = UDim2.new(0.5, -260, 0.5, -290)
+mainFrame.BackgroundColor3 = Color3.fromRGB(18, 25, 45)
+mainFrame.BackgroundTransparency = 0.25
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 40)
+corner.Parent = mainFrame
+
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 1
+stroke.Color = Color3.fromRGB(72, 187, 255)
+stroke.Transparency = 0.75
+stroke.Parent = mainFrame
+
+local shadow = Instance.new("UIShadow")
+shadow.Size = 25
+shadow.Parent = mainFrame
+
+-- Dragging logic
+local dragBar = Instance.new("Frame")
+dragBar.Name = "DragBar"
+dragBar.Size = UDim2.new(1, 0, 0, 60)
+dragBar.BackgroundColor3 = Color3.fromRGB(12, 18, 34)
+dragBar.BackgroundTransparency = 0.7
+dragBar.BorderSizePixel = 0
+dragBar.Parent = mainFrame
+
+local dragCorner = Instance.new("UICorner")
+dragCorner.CornerRadius = UDim.new(0, 40)
+dragCorner.Parent = dragBar
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 1, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "loadstring()  raw2exec"
+titleLabel.TextColor3 = Color3.fromRGB(192, 224, 255)
+titleLabel.TextSize = 22
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Position = UDim2.new(0, 20, 0, 0)
+titleLabel.Parent = dragBar
+
+local subLabel = Instance.new("TextLabel")
+subLabel.Size = UDim2.new(1, -40, 0, 20)
+subLabel.Position = UDim2.new(0, 20, 0, 32)
+subLabel.BackgroundTransparency = 1
+subLabel.Text = "Paste raw script URL -> get Roblox loadstring wrapper"
+subLabel.TextColor3 = Color3.fromRGB(154, 179, 213)
+subLabel.TextSize = 12
+subLabel.Font = Enum.Font.Code
+subLabel.TextXAlignment = Enum.TextXAlignment.Left
+subLabel.Parent = dragBar
+
+local dragging = false
+local dragStart, startPos
+
+dragBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+local content = Instance.new("Frame")
+content.Name = "Content"
+content.Size = UDim2.new(1, -40, 1, -80)
+content.Position = UDim2.new(0, 20, 0, 70)
+content.BackgroundTransparency = 1
+content.Parent = mainFrame
+
+local inputLabel = Instance.new("TextLabel")
+inputLabel.Size = UDim2.new(1, 0, 0, 24)
+inputLabel.Position = UDim2.new(0, 0, 0, 0)
+inputLabel.BackgroundTransparency = 1
+inputLabel.Text = "Raw script URL (must be raw text / .lua or raw.githubusercontent)"
+inputLabel.TextColor3 = Color3.fromRGB(207, 223, 255)
+inputLabel.TextSize = 13
+inputLabel.Font = Enum.Font.GothamMedium
+inputLabel.TextXAlignment = Enum.TextXAlignment.Left
+inputLabel.Parent = content
+
+local urlBox = Instance.new("TextBox")
+urlBox.Size = UDim2.new(1, -90, 0, 42)
+urlBox.Position = UDim2.new(0, 0, 0, 28)
+urlBox.BackgroundColor3 = Color3.fromRGB(15, 20, 34)
+urlBox.BorderSizePixel = 0
+urlBox.TextColor3 = Color3.fromRGB(238, 244, 255)
+urlBox.TextSize = 14
+urlBox.Font = Enum.Font.Code
+urlBox.PlaceholderText = "https://raw.githubusercontent.com/user/script/main/example.lua"
+urlBox.Text = ""
+urlBox.ClearTextOnFocus = false
+urlBox.Parent = content
+
+local urlCorner = Instance.new("UICorner")
+urlCorner.CornerRadius = UDim.new(0, 20)
+urlCorner.Parent = urlBox
+
+local urlStroke = Instance.new("UIStroke")
+urlStroke.Thickness = 1.5
+urlStroke.Color = Color3.fromRGB(38, 50, 74)
+urlStroke.Parent = urlBox
+
+local generateBtn = Instance.new("TextButton")
+generateBtn.Size = UDim2.new(0, 80, 0, 42)
+generateBtn.Position = UDim2.new(1, -80, 0, 28)
+generateBtn.BackgroundColor3 = Color3.fromRGB(37, 99, 235)
+generateBtn.BorderSizePixel = 0
+generateBtn.Text = "Generate"
+generateBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+generateBtn.TextSize = 14
+generateBtn.Font = Enum.Font.GothamBold
+generateBtn.Parent = content
+
+local genCorner = Instance.new("UICorner")
+genCorner.CornerRadius = UDim.new(0, 24)
+genCorner.Parent = generateBtn
+
+generateBtn.MouseButton1Click:Connect(function()
+    local url = urlBox.Text:match("^%s*(.-)%s*$")
+    if url == "" then
+        statusLabel.Text = "Please enter a valid raw URL"
+        statusLabel.TextColor3 = Color3.fromRGB(255, 174, 174)
+        return
+    end
+    statusLabel.Text = "Fetching script..."
+    statusLabel.TextColor3 = Color3.fromRGB(127, 159, 207)
+    
+    local success, result = pcall(function()
+        return game:HttpGet(url)
+    end)
+    
+    if success then
+        local preview = result:sub(1, 500)
+        if #result > 500 then preview = preview .. "\n... (truncated)" end
+        previewBox.Text = preview
+        
+        local safeUrl = url:gsub('"', '\\"')
+        local loadstringCode = 'loadstring(game:HttpGet("' .. safeUrl .. '"))()'
+        outputBox.Text = loadstringCode
+        
+        statusLabel.Text = "Loadstring ready. Script length: " .. #result .. " chars"
+        statusLabel.TextColor3 = Color3.fromRGB(178, 255, 207)
+    else
+        local safeUrl = url:gsub('"', '\\"')
+        local fallbackCode = 'loadstring(game:HttpGet("' .. safeUrl .. '"))()'
+        outputBox.Text = fallbackCode
+        previewBox.Text = "Could not fetch preview. The URL may be invalid or blocked. Loadstring was still generated."
+        statusLabel.Text = "Warning: Preview failed, but loadstring is ready"
+        statusLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+    end
+end)
+
+local exampleLabel = Instance.new("TextLabel")
+exampleLabel.Size = UDim2.new(0, 100, 0, 24)
+exampleLabel.Position = UDim2.new(0, 0, 0, 78)
+exampleLabel.BackgroundTransparency = 1
+exampleLabel.Text = "Try examples:"
+exampleLabel.TextColor3 = Color3.fromRGB(106, 134, 179)
+exampleLabel.TextSize = 12
+exampleLabel.Font = Enum.Font.Code
+exampleLabel.TextXAlignment = Enum.TextXAlignment.Left
+exampleLabel.Parent = content
+
+local examples = {
+    {name = "Example script", url = "https://raw.githubusercontent.com/Exunys/Roblox-Scripts/main/Example.lua"},
+    {name = "Hello World", url = "https://raw.githubusercontent.com/scripts/Test/main/hello.lua"},
+    {name = "Test text", url = "https://gist.githubusercontent.com/raw/example/raw-link-test.txt"}
+}
+
+local exampleContainer = Instance.new("Frame")
+exampleContainer.Size = UDim2.new(1, 0, 0, 28)
+exampleContainer.Position = UDim2.new(0, 0, 0, 104)
+exampleContainer.BackgroundTransparency = 1
+exampleContainer.Parent = content
+
+for i, ex in ipairs(examples) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 110, 0, 24)
+    btn.Position = UDim2.new(0, (i-1) * 115, 0, 0)
+    btn.BackgroundColor3 = Color3.fromRGB(17, 24, 39)
+    btn.BorderSizePixel = 0
+    btn.Text = ex.name
+    btn.TextColor3 = Color3.fromRGB(122, 169, 255)
+    btn.TextSize = 11
+    btn.Font = Enum.Font.Code
+    btn.Parent = exampleContainer
+    
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 16)
+    btnCorner.Parent = btn
+    
+    local btnStroke = Instance.new("UIStroke")
+    btnStroke.Thickness = 1
+    btnStroke.Color = Color3.fromRGB(42, 58, 96)
+    btnStroke.Parent = btn
+    
+    btn.MouseButton1Click:Connect(function()
+        urlBox.Text = ex.url
+        generateBtn.MouseButton1Click:Fire()
+    end)
+end
+
+local outputSection = Instance.new("Frame")
+outputSection.Size = UDim2.new(1, 0, 0, 160)
+outputSection.Position = UDim2.new(0, 0, 0, 140)
+outputSection.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+outputSection.BackgroundTransparency = 0.35
+outputSection.BorderSizePixel = 0
+outputSection.Parent = content
+
+local outputCorner = Instance.new("UICorner")
+outputCorner.CornerRadius = UDim.new(0, 24)
+outputCorner.Parent = outputSection
+
+local outputStroke = Instance.new("UIStroke")
+outputStroke.Thickness = 1
+outputStroke.Color = Color3.fromRGB(59, 130, 246)
+outputStroke.Transparency = 0.7
+outputStroke.Parent = outputSection
+
+local outputHeader = Instance.new("Frame")
+outputHeader.Size = UDim2.new(1, 0, 0, 40)
+outputHeader.BackgroundColor3 = Color3.fromRGB(20, 28, 45)
+outputHeader.BackgroundTransparency = 0.7
+outputHeader.BorderSizePixel = 0
+outputHeader.Parent = outputSection
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 24)
+headerCorner.Parent = outputHeader
+
+local headerLabel = Instance.new("TextLabel")
+headerLabel.Size = UDim2.new(0.7, 0, 1, 0)
+headerLabel.BackgroundTransparency = 1
+headerLabel.Text = "LOADSTRING READY  Roblox Executor Format"
+headerLabel.TextColor3 = Color3.fromRGB(140, 174, 224)
+headerLabel.TextSize = 12
+headerLabel.Font = Enum.Font.GothamMedium
+headerLabel.TextXAlignment = Enum.TextXAlignment.Left
+headerLabel.Position = UDim2.new(0, 15, 0, 0)
+headerLabel.Parent = outputHeader
+
+local copyOutputBtn = Instance.new("TextButton")
+copyOutputBtn.Size = UDim2.new(0, 90, 0, 28)
+copyOutputBtn.Position = UDim2.new(1, -100, 0, 6)
+copyOutputBtn.BackgroundColor3 = Color3.fromRGB(30, 41, 59)
+copyOutputBtn.BorderSizePixel = 0
+copyOutputBtn.Text = "Copy Code"
+copyOutputBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+copyOutputBtn.TextSize = 11
+copyOutputBtn.Font = Enum.Font.GothamBold
+copyOutputBtn.Parent = outputHeader
+
+local copyCorner = Instance.new("UICorner")
+copyCorner.CornerRadius = UDim.new(0, 16)
+copyCorner.Parent = copyOutputBtn
+
+copyOutputBtn.MouseButton1Click:Connect(function()
+    if outputBox.Text and outputBox.Text ~= "" then
+        setclipboard or toclipboard = toclipboard or (setclipboard or (function() end))
+        if setclipboard then
+            setclipboard(outputBox.Text)
+        elseif toclipboard then
+            toclipboard(outputBox.Text)
+        end
+        statusLabel.Text = "Loadstring copied to clipboard"
+        statusLabel.TextColor3 = Color3.fromRGB(178, 255, 207)
+    else
+        statusLabel.Text = "Nothing to copy yet. Generate a loadstring first."
+        statusLabel.TextColor3 = Color3.fromRGB(255, 174, 174)
+    end
+end)
+
+local outputBox = Instance.new("TextBox")
+outputBox.Size = UDim2.new(1, -20, 1, -50)
+outputBox.Position = UDim2.new(0, 10, 0, 45)
+outputBox.BackgroundTransparency = 1
+outputBox.TextColor3 = Color3.fromRGB(185, 226, 255)
+outputBox.TextSize = 12
+outputBox.Font = Enum.Font.Code
+outputBox.Text = "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/Exunys/Roblox-Scripts/main/Example.lua\"))()"
+outputBox.TextWrapped = true
+outputBox.TextXAlignment = Enum.TextXAlignment.Left
+outputBox.TextYAlignment = Enum.TextYAlignment.Top
+outputBox.ClearTextOnFocus = false
+outputBox.Parent = outputSection
+
+local previewSection = Instance.new("Frame")
+previewSection.Size = UDim2.new(1, 0, 0, 140)
+previewSection.Position = UDim2.new(0, 0, 0, 310)
+previewSection.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+previewSection.BackgroundTransparency = 0.35
+previewSection.BorderSizePixel = 0
+previewSection.Parent = content
+
+local previewCorner = Instance.new("UICorner")
+previewCorner.CornerRadius = UDim.new(0, 24)
+previewCorner.Parent = previewSection
+
+local previewStroke = Instance.new("UIStroke")
+previewStroke.Thickness = 1
+previewStroke.Color = Color3.fromRGB(59, 130, 246)
+previewStroke.Transparency = 0.7
+previewStroke.Parent = previewSection
+
+local previewHeader = Instance.new("Frame")
+previewHeader.Size = UDim2.new(1, 0, 0, 40)
+previewHeader.BackgroundColor3 = Color3.fromRGB(20, 28, 45)
+previewHeader.BackgroundTransparency = 0.7
+previewHeader.BorderSizePixel = 0
+previewHeader.Parent = previewSection
+
+local previewHeaderCorner = Instance.new("UICorner")
+previewHeaderCorner.CornerRadius = UDim.new(0, 24)
+previewHeaderCorner.Parent = previewHeader
+
+local previewHeaderLabel = Instance.new("TextLabel")
+previewHeaderLabel.Size = UDim2.new(0.7, 0, 1, 0)
+previewHeaderLabel.BackgroundTransparency = 1
+previewHeaderLabel.Text = "Raw script preview  first 500 characters"
+previewHeaderLabel.TextColor3 = Color3.fromRGB(140, 174, 224)
+previewHeaderLabel.TextSize = 12
+previewHeaderLabel.Font = Enum.Font.GothamMedium
+previewHeaderLabel.TextXAlignment = Enum.TextXAlignment.Left
+previewHeaderLabel.Position = UDim2.new(0, 15, 0, 0)
+previewHeaderLabel.Parent = previewHeader
+
+local copyPreviewBtn = Instance.new("TextButton")
+copyPreviewBtn.Size = UDim2.new(0, 90, 0, 28)
+copyPreviewBtn.Position = UDim2.new(1, -100, 0, 6)
+copyPreviewBtn.BackgroundColor3 = Color3.fromRGB(30, 41, 59)
+copyPreviewBtn.BorderSizePixel = 0
+copyPreviewBtn.Text = "Copy Preview"
+copyPreviewBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+copyPreviewBtn.TextSize = 11
+copyPreviewBtn.Font = Enum.Font.GothamBold
+copyPreviewBtn.Parent = previewHeader
+
+local previewCornerBtn = Instance.new("UICorner")
+previewCornerBtn.CornerRadius = UDim.new(0, 16)
+previewCornerBtn.Parent = copyPreviewBtn
+
+copyPreviewBtn.MouseButton1Click:Connect(function()
+    if previewBox.Text and previewBox.Text ~= "" and previewBox.Text ~= "Waiting for URL conversion ..." then
+        if setclipboard then
+            setclipboard(previewBox.Text)
+        elseif toclipboard then
+            toclipboard(previewBox.Text)
+        end
+        statusLabel.Text = "Preview copied to clipboard"
+        statusLabel.TextColor3 = Color3.fromRGB(178, 255, 207)
+    else
+        statusLabel.Text = "No preview available to copy"
+        statusLabel.TextColor3 = Color3.fromRGB(255, 174, 174)
+    end
+end)
+
+local previewBox = Instance.new("TextBox")
+previewBox.Size = UDim2.new(1, -20, 1, -50)
+previewBox.Position = UDim2.new(0, 10, 0, 45)
+previewBox.BackgroundTransparency = 1
+previewBox.TextColor3 = Color3.fromRGB(185, 226, 255)
+previewBox.TextSize = 11
+previewBox.Font = Enum.Font.Code
+previewBox.Text = "Waiting for URL conversion ..."
+previewBox.TextWrapped = true
+previewBox.TextXAlignment = Enum.TextXAlignment.Left
+previewBox.TextYAlignment = Enum.TextYAlignment.Top
+previewBox.ClearTextOnFocus = false
+previewBox.Parent = previewSection
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, -40, 0, 30)
+statusLabel.Position = UDim2.new(0, 20, 1, -40)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Paste a raw URL and click Generate"
+statusLabel.TextColor3 = Color3.fromRGB(127, 159, 207)
+statusLabel.TextSize = 11
+statusLabel.Font = Enum.Font.Code
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+statusLabel.Parent = mainFrame
+
+local footer = Instance.new("TextLabel")
+footer.Size = UDim2.new(1, 0, 0, 30)
+footer.Position = UDim2.new(0, 0, 1, -30)
+footer.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+footer.BackgroundTransparency = 0.2
+footer.Text = "Converts any raw file URL -> loadstring(game:HttpGet(...))()  |  Draggable window"
+footer.TextColor3 = Color3.fromRGB(76, 97, 136)
+footer.TextSize = 10
+footer.Font = Enum.Font.Code
+footer.Parent = mainFrame
+
+local footerCorner = Instance.new("UICorner")
+footerCorner.CornerRadius = UDim.new(0, 0)
+footerCorner.Parent = footer
